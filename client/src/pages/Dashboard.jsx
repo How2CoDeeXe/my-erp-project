@@ -20,7 +20,8 @@ function Dashboard() {
   const [currentTime, setCurrentTime] = useState(new Date());
 
   const LOW_STOCK_THRESHOLD = 10;
-  const API_URL = 'http://localhost:3001';
+  const API_URL = 'https://your-backend-name.railway.app';
+
 
   // Live Clock Update
   useEffect(() => {

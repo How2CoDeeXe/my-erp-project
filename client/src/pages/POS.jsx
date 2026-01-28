@@ -7,7 +7,7 @@ import {
   ChevronRight, CreditCard, Search, LayoutGrid, ListFilter,
   CalendarDays, ChevronDown 
 } from 'lucide-react';
-
+const API_URL = import.meta.env.VITE_API_URL;
 // --- ✅ ส่วนที่เพิ่มใหม่: Component ย่อยสำหรับจัดการรูปภาพ (แก้จอขาว) ---
 const ProductImage = ({ image, category }) => {
   const [hasError, setHasError] = useState(false);
@@ -16,8 +16,9 @@ const ProductImage = ({ image, category }) => {
   const hasImage = image && image !== '' && image !== 'null';
 
   // จัดการ URL: ถ้าเริ่มด้วย /uploads ให้เติม localhost, ถ้าไม่ ก็ใช้ค่าเดิม
-  const src = hasImage && image.startsWith('/uploads') 
-    ? `http://localhost:3001${image}` 
+const src =
+  hasImage && image.startsWith('/uploads')
+    ? `${API_URL}${image}`
     : image;
 
   // ถ้าไม่มีรูป หรือ โหลดรูปแล้ว Error -> ให้แสดง Emoji
@@ -421,7 +422,18 @@ function POS() {
                 <div className="flex gap-4 items-start">
                   <div className="w-24 h-24 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-center overflow-hidden shrink-0">
                       {previewImage || editingProduct.image ? (
-                        <img src={previewImage || (editingProduct.image && editingProduct.image.startsWith('/uploads') ? `http://localhost:3001${editingProduct.image}` : editingProduct.image)} className="w-full h-full object-cover" alt="Preview" />
+<img
+  src={
+    previewImage ||
+    (editingProduct.image?.startsWith('/uploads')
+      ? `${API_URL}${editingProduct.image}`
+      : editingProduct.image)
+  }
+  className="w-full h-full object-cover"
+  alt="Preview"
+/>
+
+
                       ) : (<ImageIcon size={24} className="text-gray-300"/>)}
                   </div>
                   <div className="flex-1 space-y-3">
