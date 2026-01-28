@@ -20,7 +20,8 @@ function Dashboard() {
   const [currentTime, setCurrentTime] = useState(new Date());
 
   const LOW_STOCK_THRESHOLD = 10;
-  const API_URL = 'https://your-backend-name.railway.app';
+  const API_URL = import.meta.env.VITE_API_URL;
+
 
 
   // Live Clock Update
