@@ -1,6 +1,6 @@
+const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const express = require('express');
 const { auth, adminOnly } = require('./middleware/auth');
 const cors = require('cors');
 const prisma = require('./db');
@@ -75,6 +75,8 @@ cron.schedule('0 0 * * *', () => {
 
 // 1. สมัครสมาชิก
 
+
+
 // 2. เข้าสู่ระบบ
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
@@ -84,11 +86,15 @@ app.post('/login', async (req, res) => {
       where: { email }
     });
 
-    if (!user || user.password !== password) {
+    if (!user) {
       return res.status(401).json({ error: "อีเมลหรือรหัสผ่านไม่ถูกต้อง" });
     }
 
-    // ✅ สร้าง JWT
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ error: "อีเมลหรือรหัสผ่านไม่ถูกต้อง" });
+    }
+
     const token = jwt.sign(
       {
         id: user.id,
@@ -99,7 +105,6 @@ app.post('/login', async (req, res) => {
       { expiresIn: '1d' }
     );
 
-    // ❌ ไม่ส่ง password กลับไป
     const { password: _, ...userData } = user;
 
     res.json({
@@ -108,16 +113,18 @@ app.post('/login', async (req, res) => {
       user: userData
     });
 
-  } catch (error) {
+  } catch (err) {
     res.status(500).json({ error: "System Error" });
   }
 });
+
+
 
 // ----------------------------------------------------
 // 📦 ส่วนจัดการสินค้า และ ออเดอร์ (เหมือนเดิม)
 // ----------------------------------------------------
 
-app.get('/products', async (req, res) => {
+app.get('/products', auth, adminOnly, async (req, res) => {
   const products = await prisma.product.findMany({ orderBy: { createdAt: 'desc' } });
   res.json(products);
 });
@@ -143,7 +150,7 @@ app.post('/products', upload.single('imageFile'), async (req, res) => {
   }
 });
 
-app.put('/products/:id', upload.single('imageFile'), async (req, res) => {
+app.put('/products/:id', auth, adminOnly, upload.single('imageFile'), async (req, res) => {
     const { id } = req.params;
     const { name, price, stock, category, image } = req.body;
     
@@ -171,13 +178,13 @@ app.put('/products/:id', upload.single('imageFile'), async (req, res) => {
     }
 });
 
-app.delete('/products/:id', async (req, res) => {
+app.delete('/products/:id',auth, adminOnly, async (req, res) => {
   const { id } = req.params;
   await prisma.product.delete({ where: { id: parseInt(id) } });
   res.json({ message: "Deleted" });
 });
 
-app.post('/orders', async (req, res) => {
+app.post('/orders', auth, adminOnly, async (req, res) => {
   const { items, total } = req.body;
   try {
     const result = await prisma.$transaction(async (tx) => {
@@ -214,11 +221,11 @@ app.get('/auth/me', async (req, res) => {
 });
 
 
-// Dashboard API
-app.get('/dashboard', dashboardController.getDashboardData);
 
-const PORT = 3001;
+// Dashboard API
+app.get('/dashboard', auth, adminOnly, dashboardController.getDashboardData);
+
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-
