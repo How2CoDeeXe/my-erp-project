@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       Int     @id @default(autoincrement())
+  email    String  @unique
+  password String
+  name     String?
+  role     String  @default("USER")
+}
+
+model Product {
+  id        Int      @id @default(autoincrement())
+  name      String
+  price     Decimal
+  stock     Int
+  image     String?
+  // 👇 เพิ่มบรรทัดนี้ เพื่อให้ POS แยกหมวดหมู่สินค้าได้
+  category  String   @default("general") 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  orderItems OrderItem[]
+}
+
+model Order {
+  id        Int      @id @default(autoincrement())
+  total     Decimal
+  status    String   @default("COMPLETED")
+  createdAt DateTime @default(now())
+  
+  // เชื่อมไปยังรายการสินค้าในบิล
+  items     OrderItem[]
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  quantity  Int
+  price     Decimal
+  
+  // เชื่อมกับ Order
+  orderId   Int
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  // เชื่อมกับ Product
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+}
