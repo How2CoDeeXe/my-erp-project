@@ -1,4 +1,7 @@
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const express = require('express');
+const { auth, adminOnly } = require('./middleware/auth');
 const cors = require('cors');
 const prisma = require('./db');
 const cron = require('node-cron'); 
@@ -71,37 +74,39 @@ clearHistory();
 // ----------------------------------------------------
 
 // 1. สมัครสมาชิก
-app.post('/register', async (req, res) => {
-  const { email, password, name, role } = req.body;
-  try {
-    const user = await prisma.user.create({
-      data: {
-        email,
-        password,
-        name: name || 'พนักงานใหม่',
-        role: role || 'USER'
-      }
-    });
-    res.json({ message: "สมัครสมาชิกสำเร็จ!", user });
-  } catch (error) {
-    res.status(400).json({ error: "Email นี้มีอยู่ในระบบแล้ว หรือเกิดข้อผิดพลาด" });
-  }
-});
 
 // 2. เข้าสู่ระบบ
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
+
   try {
     const user = await prisma.user.findUnique({
-      where: { email: email }
+      where: { email }
     });
 
     if (!user || user.password !== password) {
       return res.status(401).json({ error: "อีเมลหรือรหัสผ่านไม่ถูกต้อง" });
     }
 
+    // ✅ สร้าง JWT
+    const token = jwt.sign(
+      {
+        id: user.id,
+        role: user.role,
+        email: user.email
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '1d' }
+    );
+
+    // ❌ ไม่ส่ง password กลับไป
     const { password: _, ...userData } = user;
-    res.json({ message: "Login success", user: userData });
+
+    res.json({
+      message: "Login success",
+      token,
+      user: userData
+    });
 
   } catch (error) {
     res.status(500).json({ error: "System Error" });
@@ -208,6 +213,7 @@ app.get('/auth/me', async (req, res) => {
   res.json({ message: "Authenticated" });
 });
 
+
 // Dashboard API
 app.get('/dashboard', dashboardController.getDashboardData);
 
@@ -215,3 +221,4 @@ const PORT = 3001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
