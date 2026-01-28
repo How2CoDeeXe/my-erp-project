@@ -12,28 +12,42 @@ function App() {
   const [isProcessing, setIsProcessing] = useState(false); // ✅ สำหรับตอน Login/Logout
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-  useEffect(() => {
-    const savedUser = localStorage.getItem('user');
-    if (savedUser && savedUser !== "undefined") {
-      try {
-        setUser(JSON.parse(savedUser));
-      } catch (error) {
-        console.error("ข้อมูล User พัง:", error);
+useEffect(() => {
+  const savedUser = localStorage.getItem('user');
+
+  if (savedUser && savedUser !== "undefined") {
+    try {
+      const parsedUser = JSON.parse(savedUser);
+
+      // ✅ เช็คว่าเป็น ADMIN เท่านั้น
+      if (parsedUser.role === 'ADMIN') {
+        setUser(parsedUser);
+      } else {
         localStorage.removeItem('user');
       }
+    } catch (error) {
+      localStorage.removeItem('user');
     }
-    setLoading(false);
-  }, []);
+  }
+
+  setLoading(false);
+}, []);
+
 
   // ✅ ฟังก์ชันตอนเข้าสู่ระบบ (หน่วงเวลา 1.5 วิ)
-  const handleLogin = (userData) => {
-    setIsProcessing(true);
-    setTimeout(() => {
-      setUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
-      setIsProcessing(false);
-    }, 1500);
-  };
+const handleLogin = (userData) => {
+  if (userData.role !== 'ADMIN') {
+    alert('บัญชีนี้ไม่มีสิทธิ์เข้าใช้งานระบบ');
+    return;
+  }
+
+  setIsProcessing(true);
+  setTimeout(() => {
+    setUser(userData);
+    localStorage.setItem('user', JSON.stringify(userData));
+    setIsProcessing(false);
+  }, 1500);
+};
 
   // ✅ ฟังก์ชันตอนออกจากระบบ (หน่วงเวลา 1.5 วิ)
   const handleLogout = () => {

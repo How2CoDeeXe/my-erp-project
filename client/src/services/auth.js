@@ -1,26 +1,19 @@
-import api from './api';
+import axios from 'axios';
 
-export const authService = {
-  // ฟังก์ชันยิง Login
-  login: async (email, password) => {
-    const response = await api.post('/login', { email, password });
-    
-    // ถ้าสำเร็จ ให้เก็บ Token ลงเครื่อง
-    if (response.data.token) {
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-    }
-    return response.data;
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001',
+  headers: {
+    'Content-Type': 'application/json',
   },
+});
 
-  // ฟังก์ชัน Logout (ลบ Token)
-  logout: () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-  },
-
-  // ฟังก์ชันดึง User ปัจจุบัน
-  getCurrentUser: () => {
-    return JSON.parse(localStorage.getItem('user'));
+// ✅ ใส่ตรงนี้ (ใต้ axios.create)
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
-};
+  return config;
+});
+
+export default api;
