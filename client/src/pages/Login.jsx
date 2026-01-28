@@ -16,9 +16,12 @@ function Login({ onLogin }) {
 
     try {
       const res = await api.post('/login', { email, password });
-      if (res.data.user) {
-        onLogin(res.data.user);
-      }
+
+if (res.data.token) {
+  localStorage.setItem('token', res.data.token);
+  localStorage.setItem('user', JSON.stringify(res.data.user));
+  onLogin(res.data.user);
+}
     } catch (err) {
       setError(err.response?.data?.error || 'อีเมลหรือรหัสผ่านไม่ถูกต้อง');
     } finally {
@@ -100,7 +103,7 @@ function Login({ onLogin }) {
                   name="email"
                   type="email" 
                   required
-                  defaultValue="boss@erp.com"
+                  defaultValue="admin@erp.com"
                   className="w-full pl-12 pr-4 py-4 bg-white/80 border border-slate-200 rounded-2xl font-bold text-slate-700 shadow-sm focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 focus:bg-white transition-all placeholder:text-slate-300" 
                   placeholder="admin@coffeebar.com"
                 />
@@ -117,7 +120,7 @@ function Login({ onLogin }) {
                   name="password"
                   type="password" 
                   required
-                  defaultValue="123"
+                  defaultValue="123456"
                   className="w-full pl-12 pr-4 py-4 bg-white/80 border border-slate-200 rounded-2xl font-bold text-slate-700 shadow-sm focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 focus:bg-white transition-all placeholder:text-slate-300" 
                   placeholder="••••••••"
                 />
