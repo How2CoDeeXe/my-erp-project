@@ -425,13 +425,14 @@ function POS() {
 <img
   src={
     previewImage ||
-    (editingProduct.image?.startsWith('/uploads')
+    (editingProduct?.image?.startsWith('/uploads')
       ? `${API_URL}${editingProduct.image}`
-      : editingProduct.image)
+      : editingProduct?.image)
   }
   className="w-full h-full object-cover"
   alt="Preview"
 />
+
 
 
                       ) : (<ImageIcon size={24} className="text-gray-300"/>)}
