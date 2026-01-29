@@ -133,6 +133,8 @@ Multi-Branch Support
 
 Audit Log / Activity Log
 
+Deploy: https://my-erp-project.vercel.app/
+
 👩‍💻 Author
 
 Developed as a Full-Stack ERP / POS Project
